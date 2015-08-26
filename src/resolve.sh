@@ -57,10 +57,10 @@ cert_get_issuer_url() {
 if [ $# != 2 ]; then
   echo "SSL certificate chain resolver"
   echo
-  echo "Usage: $0 input.crt output.crt"
+  echo "Usage: $0 input.crt bundle.pem"
   echo
   echo "Input certificate can be in either DER or PEM format."
-  echo "Output certificate is in PEM format."
+  echo "Output intermediary bundle is in PEM format."
   exit
 fi
 
@@ -80,8 +80,10 @@ while true; do
   CURRENT_SUBJECT=$(echo "$CURRENT_CERT" | cert_get_subject)
   echo "$((I+1)): $CURRENT_SUBJECT"
 
-  # append certificate to result
-  echo "$CURRENT_CERT" >> "$OUTPUT_FILENAME"
+  if [ ${I} -gt 0 ]; then
+    # append certificate to result
+    echo "$CURRENT_CERT" >> "$OUTPUT_FILENAME"
+  fi
 
   # get issuer's certificate URL
   PARENT_URL=$(echo "$CURRENT_CERT" | cert_get_issuer_url)
@@ -100,9 +102,9 @@ echo
 echo "Certificate chain complete."
 echo "Total $((I+1)) certificate(s) written."
 
-# verify the certificate chain
-if ! openssl verify -untrusted "$OUTPUT_FILENAME" "$OUTPUT_FILENAME" > /dev/null; then
-  echo "Error: verification failed"
-  exit 1
-fi
-echo "Verified successfully."
+## verify the certificate chain
+#if ! openssl verify -untrusted "$OUTPUT_FILENAME" "$OUTPUT_FILENAME" > /dev/null; then
+#  echo "Error: verification failed"
+#  exit 1
+#fi
+#echo "Verified successfully."
